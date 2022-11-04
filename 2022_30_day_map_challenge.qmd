@@ -7,12 +7,15 @@ format: html
 
 # Day 1: Points
 
+_A map with points._
+
 ```{r 1_load_libraries}
 library(lterdatasampler)
 library(here)
 library(tidyverse)
 library(leaflet)
 library(sf)
+library(lubridate)
 ```
 
 ```{r 1_download_data}
@@ -28,37 +31,70 @@ nwt_pikas_latlong <- nwt_pikas %>%
 
 nwt_pikas <- cbind(nwt_pikas, nwt_pikas_latlong) %>% 
   rename("longitude" = X,
-         "latitude" = Y)
+         "latitude" = Y) %>% 
+  mutate(month = month(date,
+                       label = TRUE))
 ```
 
 ```{r 1_map}
-getColor <- function(pikas) {
-  sapply(nwt_pikas$sex, function(sex) {
-  if(is.na(sex)) {
-    "grey"
-  } else if(sex == "male") {
-    "blue"
-  } else {
-    "grey"
-  } })
-}
-
 icons <- awesomeIcons(
-  icon = 'paw-claws',
-  iconColor = 'black',
-  markerColor = getColor(nwt_pikas)
-)
+  library = "fa",
+  icon = 'fa-paw',
+  iconColor = 'black')
 
 map_1 <- leaflet(nwt_pikas) %>% 
   fitBounds(lng1 = min(nwt_pikas$longitude - 0.01),
             lat1 = min(nwt_pikas$latitude - 0.01),
             lng2 = max(nwt_pikas$longitude + 0.01),
             lat2 = max(nwt_pikas$latitude + 0.01)) %>% 
-  addProviderTiles("OpenTopoMap") %>%
-  addAwesomeMarkers(~longitude,
-                    ~latitude,
-                    icon = icons,
-                    label = ~elev_m)
+  addProviderTiles("OpenTopoMap") 
+
+pikas.df <- split(nwt_pikas, nwt_pikas$month)
+
+#labs
+  labs <- paste0('<p>',
+                 '<b>',
+                 "Site: ",
+                 '</b>',
+                 df$site,
+                 '<p></p>',
+                 '<b>',
+                 "Station: ",
+                 '</b>',
+                 df$station,
+                 '<p></p>',
+                 '<b>',
+                 "Elevation: ",
+                 '</b>',
+                 df$elev_m,
+                 '<p></p>',
+                 '<b>',
+                 "Concentration: ",
+                 '</b>',
+                 df$concentration_pg_g,
+                 '<p>') %>% 
+    htmltools::HTML()
+
+names(pikas.df) %>%
+  purrr::walk(function(df){
+    map_1 <<- map_1 %>%
+      addAwesomeMarkers(data = pikas.df[[df]],
+                        lng = ~longitude,
+                        lat = ~latitude,
+                        label = ~labs,
+                        group = df,
+                        #popup = labs,
+                        icon = icons,
+                        clusterOptions = markerClusterOptions(removeOutsideVisibleBounds = F),
+                        labelOptions = labelOptions(noHide = F,
+                                                    direction = 'auto'))
+  })
+
+map_1 %>%
+  addLayersControl(
+    overlayGroups = names(pikas.df),
+    options = layersControlOptions(collapsed = TRUE)
+  )
 ```
 
 ```{r 1_print_map}
@@ -66,6 +102,8 @@ map_1
 ```
 
 # Day 2: Lines
+
+_A map with lines._
 
 ```{r 2_load_packages}
 
@@ -87,3 +125,10 @@ map_1
 
 ```
 
+# Day 3: Polygons
+
+_A map with polygons._ 
+
+# Day 4: Color Friday: Green 
+
+_A map containing the color green._ 
