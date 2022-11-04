@@ -5,6 +5,8 @@ author: "Scout Leonard"
 format: html
 ---
 
+These maps were completed as part of the #30DayMapChallenge for 2022. Information about the challenge is available at [Topi Tjukanovt's GitHub repository where the challenge is set](https://github.com/tjukanovt/30DayMapChallenge). 
+
 # Day 1: Points
 
 _A map with points._
@@ -56,22 +58,22 @@ pikas.df <- split(nwt_pikas, nwt_pikas$month)
                  '<b>',
                  "Site: ",
                  '</b>',
-                 df$site,
+                 ~site,
                  '<p></p>',
                  '<b>',
                  "Station: ",
                  '</b>',
-                 df$station,
+                 ~station,
                  '<p></p>',
                  '<b>',
                  "Elevation: ",
                  '</b>',
-                 df$elev_m,
+                 ~elev_m,
                  '<p></p>',
                  '<b>',
                  "Concentration: ",
                  '</b>',
-                 df$concentration_pg_g,
+                 ~concentration_pg_g,
                  '<p>') %>% 
     htmltools::HTML()
 
@@ -90,7 +92,7 @@ names(pikas.df) %>%
                                                     direction = 'auto'))
   })
 
-map_1 %>%
+map_1 %>% 
   addLayersControl(
     overlayGroups = names(pikas.df),
     options = layersControlOptions(collapsed = TRUE)
@@ -105,20 +107,37 @@ map_1
 
 _A map with lines._
 
+I mapped the national highways of the state of California using data downloaded from the CalTrans website on November 4th, 2022 and a shapefile of the state of California downloaded from
+
 ```{r 2_load_packages}
 
 ```
 
 ```{r 2_download_data}
+#highways
+cal_highways <- st_read(here("data/day_2/National_Highway_System/National_Highway_System.shp"))
 
+#state
+ca_boundary <- st_read(here("data/day_2/ca-state-boundary/CA_State_TIGER2016.shp"))
 ```
 
 ```{r 2_spatial}
-
+states
 ```
 
 ```{r 2_map}
-
+ggplot() +
+  geom_sf(data = ca_boundary,
+          size = 3,
+          color = "black",
+          fill = "cyan4") +
+  coord_sf() +
+  theme_minimal(base_family = "Roboto Condensed") +
+  geom_sf(data = cal_highways,
+          color = "floralwhite",
+          size = 0.1) +
+  labs(title = "California National Highways") +
+  theme(axis.text = element_blank())
 ```
 
 ```{r 2_print_map}
